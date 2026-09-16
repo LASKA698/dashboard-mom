@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mentor Task Radar</title>
+    <style>
+        /* CSS Dasar untuk Tampilan Profesional dan Bersih */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .header h1 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        /* Container utama untuk kartu tugas */
+        #task-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+        /* Desain Kartu (Card UI) */
+        .task-card {
+            background: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            border-left: 5px solid #3498db;
+            transition: transform 0.2s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .task-card:hover {
+            transform: translateY(-3px);
+        }
+        .task-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #2980b9;
+        }
+        .task-detail {
+            font-size: 14px;
+            margin: 5px 0;
+            color: #555;
+        }
+        .task-context {
+            font-size: 13px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px dashed #ecf0f1;
+            color: #7f8c8d;
+            flex-grow: 1; /* Mendorong badge status ke bawah */
+        }
+        .status-badge {
+            display: inline-block;
+            align-self: flex-start;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            background-color: #e0f7fa;
+            color: #00796b;
+            margin-top: 15px;
+        }
+        .loading {
+            text-align: center;
+            font-style: italic;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Mentor Command Center</h1>
+        <p>Prioritas Tugas & Konteks Rapat</p>
+    </div>
+
+    <!-- Div ini awalnya berisi teks loading, nanti akan ditimpa oleh JavaScript -->
+    <div id="task-container">
+        <div class="loading">Menghubungkan ke database...</div>
+    </div>
+
+    <script>
+        // Tautan API Anda sudah disuntikkan secara utuh di sini
+        const API_URL = "https://script.google.com/macros/s/AKfycbytKLn4lXtv5MZIZwkSxoqUVirvkE8vrTXcJxuCEtISF-JxvVPMziU5wdqcw-UxZxsr/exec"; 
+        
+        const taskContainer = document.getElementById('task-container');
+
+        // Fungsi asinkronus untuk mengambil data
+        async function fetchTasks() {
+            try {
+                // Proses Fetching
+                const response = await fetch(API_URL);
+                const data = await response.json();
+                
+                // Hapus teks loading
+                taskContainer.innerHTML = '';
+                
+                // Pengecekan logika jika sheet kosong atau tidak ada data yang valid
+                if(!data || data.length === 0) {
+                    taskContainer.innerHTML = '<p style="text-align:center;">Sistem aktif. Belum ada tugas yang dimasukkan ke dalam Sheet.</p>';
+                    return;
+                }
+
+                // Proses Render ke HTML
+                data.forEach(task => {
+                    const cardHTML = `
+                        <div class="task-card">
+                            <div class="task-title">${task.NamaTugas || 'Tanpa Judul Tugas'}</div>
+                            <div class="task-detail"><strong>PIC:</strong> ${task.PIC || '-'}</div>
+                            <div class="task-detail"><strong>Tenggat:</strong> ${task.Tenggat || '-'}</div>
+                            
+                            <!-- Blok ini menyatukan fungsi MOM ke dalam kartu tugas -->
+                            <div class="task-context">
+                                <strong>Konteks / MOM:</strong><br>
+                                ${task.Konteks || 'Tidak ada catatan rapat spesifik.'}
+                            </div>
+                            
+                            <div class="status-badge">${task.Status || 'Status Kosong'}</div>
+                        </div>
+                    `;
+                    taskContainer.insertAdjacentHTML('beforeend', cardHTML);
+                });
+
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+                taskContainer.innerHTML = '<p style="color:red; text-align:center; font-weight:bold;">Koneksi API Gagal. Periksa tautan Apps Script.</p>';
+            }
+        }
+
+        // Eksekusi fungsi saat halaman dimuat
+        fetchTasks();
+    </script>
+</body>
+</html>
